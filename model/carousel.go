@@ -1,11 +1,9 @@
 package model
 
-import "gorm.io/gorm"
+import "github.com/jinzhu/gorm"
 
-// 轮播图
 type Carousel struct {
 	gorm.Model
-
 	ImgPath   string
-	ProductId uint `gorm:"not null"`
+	ProductID uint `gorm:"not null"`
 }

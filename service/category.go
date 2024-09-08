@@ -2,28 +2,31 @@ package service
 
 import (
 	"context"
-
-	"github.com/xilepeng/gin-mall/dao"
-	"github.com/xilepeng/gin-mall/pkg/e"
-	util "github.com/xilepeng/gin-mall/pkg/utils"
-	"github.com/xilepeng/gin-mall/serializer"
+	logging "github.com/sirupsen/logrus"
+	"mall/dao"
+	"mall/serializer"
+	"mall/utils/e"
 )
 
-type CategoryService struct {
+type ListCategoriesService struct {
 }
 
-func (service *CategoryService) List(ctx context.Context) serializer.Response {
-	categoryDao := dao.NewCategoryDao(ctx)
+func (service *ListCategoriesService) List(ctx context.Context) serializer.Response {
 	code := e.SUCCESS
-	category, err := categoryDao.ListCategory()
+	categoryDao := dao.NewCategoryDao(ctx)
+	categories, err := categoryDao.ListCategory()
 	if err != nil {
-		util.LogrusObj.Infoln("err", err)
-		code = e.ERROR
+		logging.Info(err)
+		code = e.ErrorDatabase
 		return serializer.Response{
 			Status: code,
 			Msg:    e.GetMsg(code),
 			Error:  err.Error(),
 		}
 	}
-	return serializer.BuildListResponse(serializer.BuildCategorys(category), uint(len(category)))
+	return serializer.Response{
+		Status: code,
+		Msg:    e.GetMsg(code),
+		Data:   serializer.BuildCategories(categories),
+	}
 }

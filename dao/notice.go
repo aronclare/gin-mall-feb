@@ -2,9 +2,8 @@ package dao
 
 import (
 	"context"
-
-	"github.com/xilepeng/gin-mall/model"
 	"gorm.io/gorm"
+	"mall/model"
 )
 
 type NoticeDao struct {
@@ -19,8 +18,8 @@ func NewNoticeDaoByDB(db *gorm.DB) *NoticeDao {
 	return &NoticeDao{db}
 }
 
-// GetNoticeById 根据 id 获取 notice
-func (dao *NoticeDao) GetNoticeById(id uint) (notice *model.Notice, err error) { // nitice 拼写错误
+// GetNoticeById 通过id获取notice
+func (dao *NoticeDao) GetNoticeById(id uint) (notice *model.Notice, err error) {
 	err = dao.DB.Model(&model.Notice{}).Where("id=?", id).First(&notice).Error
 	return
 }

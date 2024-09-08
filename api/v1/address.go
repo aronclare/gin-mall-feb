@@ -1,73 +1,65 @@
 package v1
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
-	util "github.com/xilepeng/gin-mall/pkg/utils"
-	"github.com/xilepeng/gin-mall/service"
+	"mall/service"
+	util2 "mall/utils"
 )
 
-// CreateAddress 新建收藏
+// CreateAddress 新增收货地址
 func CreateAddress(c *gin.Context) {
-	claim, _ := util.ParseToken(c.GetHeader("Authorization"))
-	createAddresssService := service.AddressService{}
-	if err := c.ShouldBind(&createAddresssService); err == nil {
-		res := createAddresssService.Create(c.Request.Context(), claim.ID)
-		c.JSON(http.StatusOK, res)
+	addressService := service.AddressService{}
+	claim, _ := util2.ParseToken(c.GetHeader("Authorization"))
+	if err := c.ShouldBind(&addressService); err == nil {
+		res := addressService.Create(c.Request.Context(), claim.ID)
+		c.JSON(200, res)
 	} else {
-		c.JSON(http.StatusBadRequest, ErrorResponse(err))
-		util.LogrusObj.Infoln(err)
+		c.JSON(400, err)
+		util2.LogrusObj.Infoln(err)
 	}
 }
 
-// ShowAddress 获取商品展示信息
+// GetAddress 展示某个收货地址
 func GetAddress(c *gin.Context) {
-	showAddressService := service.AddressService{}
-	if err := c.ShouldBind(&showAddressService); err == nil {
-		res := showAddressService.Show(c.Request.Context(), c.Param("id"))
-		c.JSON(http.StatusOK, res)
-	} else {
-		c.JSON(http.StatusBadRequest, ErrorResponse(err))
-		util.LogrusObj.Infoln(err)
-	}
+	addressService := service.AddressService{}
+	res := addressService.Show(c.Request.Context(), c.Param("id"))
+	c.JSON(200, res)
 }
 
-// ListAddress 获取收藏列表
+// ListAddress 展示收货地址
 func ListAddress(c *gin.Context) {
-	listAddressService := service.AddressService{}
-	claim, _ := util.ParseToken(c.GetHeader("Authorization"))
-	if err := c.ShouldBind(&listAddressService); err == nil {
-		res := listAddressService.List(c.Request.Context(), claim.ID)
-		c.JSON(http.StatusOK, res)
+	addressService := service.AddressService{}
+	claim, _ := util2.ParseToken(c.GetHeader("Authorization"))
+	if err := c.ShouldBind(&addressService); err == nil {
+		res := addressService.List(c.Request.Context(), claim.ID)
+		c.JSON(200, res)
 	} else {
-		c.JSON(http.StatusBadRequest, ErrorResponse(err))
-		util.LogrusObj.Infoln(err)
+		c.JSON(400, err)
+		util2.LogrusObj.Infoln(err)
 	}
 }
 
-// UpdateAddress 新建收藏
+// UpdateAddress 修改收货地址
 func UpdateAddress(c *gin.Context) {
-	claim, _ := util.ParseToken(c.GetHeader("Authorization"))
-	updateAddresssService := service.AddressService{}
-	if err := c.ShouldBind(&updateAddresssService); err == nil {
-		res := updateAddresssService.Update(c.Request.Context(), claim.ID, c.Param("id"))
-		c.JSON(http.StatusOK, res)
+	addressService := service.AddressService{}
+	claim, _ := util2.ParseToken(c.GetHeader("Authorization"))
+	if err := c.ShouldBind(&addressService); err == nil {
+		res := addressService.Update(c.Request.Context(), claim.ID, c.Param("id"))
+		c.JSON(200, res)
 	} else {
-		c.JSON(http.StatusBadRequest, ErrorResponse(err))
-		util.LogrusObj.Infoln(err)
+		c.JSON(400, err)
+		util2.LogrusObj.Infoln(err)
 	}
 }
 
-// DeleteAddress 删除收藏夹
+// DeleteAddress 删除收获地址
 func DeleteAddress(c *gin.Context) {
-	deleteAddressService := service.AddressService{}
-	claim, _ := util.ParseToken(c.GetHeader("Authorization"))
-	if err := c.ShouldBind(&deleteAddressService); err == nil {
-		res := deleteAddressService.Delete(c.Request.Context(), claim.ID, c.Param("id"))
-		c.JSON(http.StatusOK, res)
+	addressService := service.AddressService{}
+	if err := c.ShouldBind(&addressService); err == nil {
+		res := addressService.Delete(c.Request.Context(), c.Param("id"))
+		c.JSON(200, res)
 	} else {
-		c.JSON(http.StatusBadRequest, ErrorResponse(err))
-		util.LogrusObj.Infoln(err)
+		c.JSON(400, err)
+		util2.LogrusObj.Infoln(err)
 	}
 }

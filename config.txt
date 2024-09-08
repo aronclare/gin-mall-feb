@@ -1,0 +1,3 @@
+new version    v1.2
+
+配置好数据库 在根目录执行go run ./cmd/main.go  否则会报错   在执行此命令之前需先注释掉docker 配置文件   并注释掉日志记录函数

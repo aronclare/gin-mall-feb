@@ -2,22 +2,21 @@ package serializer
 
 import (
 	"context"
-
-	"github.com/xilepeng/gin-mall/conf"
-	"github.com/xilepeng/gin-mall/dao"
-	"github.com/xilepeng/gin-mall/model"
+	"mall/dao"
+	"mall/model"
 )
 
+// 购物车
 type Cart struct {
-	Id            uint   `json:"id"`
-	UserId        uint   `json:"user_id"`
-	ProductId     uint   `json:"product_id"`
-	Name          string `json:"name"`
+	ID            uint   `json:"id"`
+	UserID        uint   `json:"user_id"`
+	ProductID     uint   `json:"product_id"`
 	CreateAt      int64  `json:"create_at"`
-	Num           int    `json:"num"`
-	MaxNum        int    `json:"max_num"`
-	ImgPath       string `json:"img_path"`
+	Num           uint   `json:"num"`
+	MaxNum        uint   `json:"max_num"`
 	Check         bool   `json:"check"`
+	Name          string `json:"name"`
+	ImgPath       string `json:"img_path"`
 	DiscountPrice string `json:"discount_price"`
 	BossId        uint   `json:"boss_id"`
 	BossName      string `json:"boss_name"`
@@ -25,36 +24,35 @@ type Cart struct {
 
 func BuildCart(cart *model.Cart, product *model.Product, boss *model.User) Cart {
 	return Cart{
-		Id:            cart.ID,
-		UserId:        cart.UserId,
-		ProductId:     cart.ProductId,
+		ID:            cart.ID,
+		UserID:        cart.UserID,
+		ProductID:     cart.ProductID,
 		CreateAt:      cart.CreatedAt.Unix(),
-		Num:           int(cart.Num),
-		MaxNum:        int(cart.MaxNum),
+		Num:           cart.Num,
+		MaxNum:        cart.MaxNum,
 		Check:         cart.Check,
 		Name:          product.Name,
-		ImgPath:       conf.Host + conf.HttpPort + conf.ProductPath + product.ImgPath,
+		ImgPath:       product.ImgPath,
 		DiscountPrice: product.DiscountPrice,
 		BossId:        boss.ID,
 		BossName:      boss.UserName,
 	}
 }
 
-func BuildCarts(ctx context.Context, items []*model.Cart) (carts []Cart) {
-	productDao := dao.NewProductDao(ctx)
-	bossDao := dao.NewUserDao(ctx)
-	for _, item := range items {
-		product, err := productDao.GetProductById(item.ProductId)
+func BuildCarts(items []*model.Cart) (carts []Cart) {
+	for _, item1 := range items {
+		product, err := dao.NewProductDao(context.Background()).
+			GetProductById(item1.ProductID)
 		if err != nil {
 			continue
 		}
-		boss, err := bossDao.GetUserById(item.UserId)
+		boss, err := dao.NewUserDao(context.Background()).
+			GetUserById(item1.BossID)
 		if err != nil {
 			continue
 		}
-		cart := BuildCart(item, product, boss)
+		cart := BuildCart(item1, product, boss)
 		carts = append(carts, cart)
-
 	}
-	return
+	return carts
 }

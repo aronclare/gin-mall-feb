@@ -2,26 +2,24 @@ package service
 
 import (
 	"context"
+	logging "github.com/sirupsen/logrus"
+	"mall/dao"
+	"mall/model"
+	"mall/serializer"
+	"mall/utils/e"
 	"strconv"
-
-	"github.com/xilepeng/gin-mall/dao"
-	"github.com/xilepeng/gin-mall/model"
-	"github.com/xilepeng/gin-mall/pkg/e"
-	util "github.com/xilepeng/gin-mall/pkg/utils"
-	"github.com/xilepeng/gin-mall/serializer"
 )
 
 type AddressService struct {
-	Name    string `json:"name" form:"name"`
-	Phone   string `json:"phone" form:"phone"`
-	Address string `json:"address" form:"address"`
+	Name    string `form:"name" json:"name"`
+	Phone   string `form:"phone" json:"phone"`
+	Address string `form:"address" json:"address"`
 }
 
 func (service *AddressService) Create(ctx context.Context, uId uint) serializer.Response {
-	var address *model.Address
 	code := e.SUCCESS
 	addressDao := dao.NewAddressDao(ctx)
-	address = &model.Address{
+	address := &model.Address{
 		UserID:  uId,
 		Name:    service.Name,
 		Phone:   service.Phone,
@@ -29,8 +27,20 @@ func (service *AddressService) Create(ctx context.Context, uId uint) serializer.
 	}
 	err := addressDao.CreateAddress(address)
 	if err != nil {
-		util.LogrusObj.Infoln("err", err)
-		code = e.ERROR
+		logging.Info(err)
+		code = e.ErrorDatabase
+		return serializer.Response{
+			Status: code,
+			Msg:    e.GetMsg(code),
+			Error:  err.Error(),
+		}
+	}
+	addressDao = dao.NewAddressDaoByDB(addressDao.DB)
+	var addresses []*model.Address
+	addresses, err = addressDao.ListAddressByUid(uId)
+	if err != nil {
+		logging.Info(err)
+		code = e.ErrorDatabase
 		return serializer.Response{
 			Status: code,
 			Msg:    e.GetMsg(code),
@@ -39,18 +49,19 @@ func (service *AddressService) Create(ctx context.Context, uId uint) serializer.
 	}
 	return serializer.Response{
 		Status: code,
+		Data:   serializer.BuildAddresses(addresses),
 		Msg:    e.GetMsg(code),
 	}
 }
 
 func (service *AddressService) Show(ctx context.Context, aId string) serializer.Response {
-	addressId, _ := strconv.Atoi(aId)
 	code := e.SUCCESS
 	addressDao := dao.NewAddressDao(ctx)
+	addressId, _ := strconv.Atoi(aId)
 	address, err := addressDao.GetAddressByAid(uint(addressId))
 	if err != nil {
-		util.LogrusObj.Infoln("err", err)
-		code = e.ERROR
+		logging.Info(err)
+		code = e.ErrorDatabase
 		return serializer.Response{
 			Status: code,
 			Msg:    e.GetMsg(code),
@@ -59,18 +70,39 @@ func (service *AddressService) Show(ctx context.Context, aId string) serializer.
 	}
 	return serializer.Response{
 		Status: code,
-		Msg:    e.GetMsg(code),
 		Data:   serializer.BuildAddress(address),
+		Msg:    e.GetMsg(code),
 	}
 }
 
 func (service *AddressService) List(ctx context.Context, uId uint) serializer.Response {
 	code := e.SUCCESS
 	addressDao := dao.NewAddressDao(ctx)
-	addressList, err := addressDao.ListAddressByUserId(uId)
+	address, err := addressDao.ListAddressByUid(uId)
 	if err != nil {
-		util.LogrusObj.Infoln("err", err)
-		code = e.ERROR
+		logging.Info(err)
+		code = e.ErrorDatabase
+		return serializer.Response{
+			Status: code,
+			Msg:    e.GetMsg(code),
+			Error:  err.Error(),
+		}
+	}
+	return serializer.Response{
+		Status: code,
+		Data:   serializer.BuildAddresses(address),
+		Msg:    e.GetMsg(code),
+	}
+}
+
+func (service *AddressService) Delete(ctx context.Context, aId string) serializer.Response {
+	addressDao := dao.NewAddressDao(ctx)
+	code := e.SUCCESS
+	addressId, _ := strconv.Atoi(aId)
+	err := addressDao.DeleteAddressById(uint(addressId))
+	if err != nil {
+		logging.Info(err)
+		code = e.ErrorDatabase
 		return serializer.Response{
 			Status: code,
 			Msg:    e.GetMsg(code),
@@ -80,25 +112,27 @@ func (service *AddressService) List(ctx context.Context, uId uint) serializer.Re
 	return serializer.Response{
 		Status: code,
 		Msg:    e.GetMsg(code),
-		Data:   serializer.BuildAddresses(addressList),
 	}
 }
 
-func (service *AddressService) Update(ctx context.Context, uId uint, aId string) serializer.Response {
-	var address *model.Address
+func (service *AddressService) Update(ctx context.Context, uid uint, aid string) serializer.Response {
 	code := e.SUCCESS
+
 	addressDao := dao.NewAddressDao(ctx)
-	address = &model.Address{
-		UserID:  uId,
+	address := &model.Address{
+		UserID:  uid,
 		Name:    service.Name,
 		Phone:   service.Phone,
 		Address: service.Address,
 	}
-	addressId, _ := strconv.Atoi(aId)
-	err := addressDao.UpdateAddressByUserId(uint(addressId), address)
+	addressId, _ := strconv.Atoi(aid)
+	err := addressDao.UpdateAddressById(uint(addressId), address)
+	addressDao = dao.NewAddressDaoByDB(addressDao.DB)
+	var addresses []*model.Address
+	addresses, err = addressDao.ListAddressByUid(uid)
 	if err != nil {
-		util.LogrusObj.Infoln("err", err)
-		code = e.ERROR
+		logging.Info(err)
+		code = e.ErrorDatabase
 		return serializer.Response{
 			Status: code,
 			Msg:    e.GetMsg(code),
@@ -107,28 +141,7 @@ func (service *AddressService) Update(ctx context.Context, uId uint, aId string)
 	}
 	return serializer.Response{
 		Status: code,
+		Data:   serializer.BuildAddresses(addresses),
 		Msg:    e.GetMsg(code),
-	}
-}
-
-func (service *AddressService) Delete(ctx context.Context, uId uint, aId string) serializer.Response {
-	var address *model.Address
-	addressId, _ := strconv.Atoi(aId)
-	code := e.SUCCESS
-	addressDao := dao.NewAddressDao(ctx)
-	err := addressDao.DeleteAddressByAddressId(uint(addressId), uId)
-	if err != nil {
-		util.LogrusObj.Infoln("err", err)
-		code = e.ERROR
-		return serializer.Response{
-			Status: code,
-			Msg:    e.GetMsg(code),
-			Error:  err.Error(),
-		}
-	}
-	return serializer.Response{
-		Status: code,
-		Msg:    e.GetMsg(code),
-		Data:   serializer.BuildAddress(address),
 	}
 }

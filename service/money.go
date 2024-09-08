@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-
-	"github.com/xilepeng/gin-mall/dao"
-	"github.com/xilepeng/gin-mall/pkg/e"
-	"github.com/xilepeng/gin-mall/serializer"
+	logging "github.com/sirupsen/logrus"
+	"mall/dao"
+	"mall/serializer"
+	"mall/utils/e"
 )
 
 type ShowMoneyService struct {
@@ -17,6 +17,7 @@ func (service *ShowMoneyService) Show(ctx context.Context, uId uint) serializer.
 	userDao := dao.NewUserDao(ctx)
 	user, err := userDao.GetUserById(uId)
 	if err != nil {
+		logging.Info(err)
 		code = e.ErrorDatabase
 		return serializer.Response{
 			Status: code,

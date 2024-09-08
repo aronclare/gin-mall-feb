@@ -1,49 +1,49 @@
 package serializer
 
 import (
-	"github.com/xilepeng/gin-mall/conf"
-	"github.com/xilepeng/gin-mall/model"
+	"mall/model"
 )
 
-// 将数据序列化为 json 的函数，便于返回给前端
-
 type Product struct {
-	Id            uint   `json:"id"`
+	ID            uint   `json:"id"`
 	Name          string `json:"name"`
-	CategoryId    uint   `json:"category_id"` // 分类
+	CategoryID    uint   `json:"category_id"`
 	Title         string `json:"title"`
 	Info          string `json:"info"`
 	ImgPath       string `json:"img_path"`
 	Price         string `json:"price"`
-	DiscountPrice string `json:"discount_price"` // 折扣价
+	DiscountPrice string `json:"discount_price"`
 	View          uint64 `json:"view"`
-	CreateAt      int64  `json:"create_at"`
+	CreatedAt     int64  `json:"created_at"`
 	Num           int    `json:"num"`
 	OnSale        bool   `json:"on_sale"`
-	BossId        uint   `json:"boss_id"`
+	BossID        int    `json:"boss_id"`
 	BossName      string `json:"boss_name"`
 	BossAvatar    string `json:"boss_avatar"`
 }
 
+// 序列化商品
 func BuildProduct(item *model.Product) Product {
 	return Product{
-		Id:            item.ID,
+		ID:            item.ID,
 		Name:          item.Name,
-		CategoryId:    item.CategoryId,
+		CategoryID:    item.CategoryID,
 		Title:         item.Title,
 		Info:          item.Info,
-		ImgPath:       conf.Host + conf.HttpPort + conf.ProductPath + item.ImgPath,
+		ImgPath:       item.ImgPath,
 		Price:         item.Price,
 		DiscountPrice: item.DiscountPrice,
 		View:          item.View(),
-		CreateAt:      item.CreatedAt.Unix(),
 		Num:           item.Num,
 		OnSale:        item.OnSale,
-		BossId:        item.BossId,
+		CreatedAt:     item.CreatedAt.Unix(),
+		BossID:        item.BossID,
 		BossName:      item.BossName,
-		BossAvatar:    conf.Host + conf.HttpPort + conf.AvatarPath + item.BossAvatar,
+		BossAvatar:    item.BossAvatar,
 	}
 }
+
+// 序列化商品列表
 func BuildProducts(items []*model.Product) (products []Product) {
 	for _, item := range items {
 		product := BuildProduct(item)

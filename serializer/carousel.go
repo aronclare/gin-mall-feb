@@ -1,26 +1,28 @@
 package serializer
 
-import "github.com/xilepeng/gin-mall/model"
+import "mall/model"
 
 type Carousel struct {
-	Id        uint   `json:"id"`
+	ID        uint   `json:"id"`
 	ImgPath   string `json:"img_path"`
-	ProductId uint   `json:"product_id"`
-	CreateAt  int64  `json:"create_at"`
+	ProductID uint   `json:"product_id"`
+	CreatedAt int64  `json:"created_at"`
 }
 
+// 序列化轮播图
 func BuildCarousel(item *model.Carousel) Carousel {
 	return Carousel{
-		Id:        item.ID,
+		ID:        item.ID,
 		ImgPath:   item.ImgPath,
-		ProductId: item.ProductId,
-		CreateAt:  item.CreatedAt.Unix(),
+		ProductID: item.ProductID,
+		CreatedAt: item.CreatedAt.Unix(),
 	}
 }
 
-func BuildCarousels(items []model.Carousel) (carousels []Carousel) {
+// 序列化轮播图列表
+func BuildCarousels(items []*model.Carousel) (carousels []Carousel) {
 	for _, item := range items {
-		carousel := BuildCarousel(&item)
+		carousel := BuildCarousel(item)
 		carousels = append(carousels, carousel)
 	}
 	return carousels

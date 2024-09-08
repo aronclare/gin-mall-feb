@@ -1,76 +1,87 @@
 package routes
 
 import (
-	"net/http"
-
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	api "github.com/xilepeng/gin-mall/api/v1"
-	"github.com/xilepeng/gin-mall/middleware"
+	api "mall/api/v1"
+	"mall/conf"
+	"mall/middleware"
 )
 
-func NewRouter() *gin.Engine {
+// 路由配置
+func InitRouter() *gin.Engine {
+	gin.SetMode(conf.AppMode)
 	r := gin.Default()
+	store := cookie.NewStore([]byte("something-very-secret"))
 	r.Use(middleware.Cors())
-	r.StaticFS("/static", http.Dir("./static"))
+	r.Use(sessions.Sessions("mysession", store))
 	v1 := r.Group("api/v1")
 	{
+
 		v1.GET("ping", func(c *gin.Context) {
-			c.JSON(200, "success")
+			c.JSON(200, gin.H{
+				"msg": "success",
+			})
 		})
 
-		// 用户操作
-		v1.POST("user/register", api.UserRegister)
-		v1.POST("user/login", api.UserLogin)
+		//用户操作
+		v1.POST("user/register", api.UserRegister) //用户注册
+		v1.POST("user/login", api.UserLogin)       //用户登录
 
-		// 商品操作
-		v1.GET("carousels", api.ListCarousel)   // 轮播图
-		v1.GET("products", api.ListProduct)     // 获取商品列表
-		v1.GET("products/:id", api.ShowProduct) // 获取商品展示信息
-		v1.GET("imgs/:id", api.ListProductImg)  // 获取商品图片
-		v1.GET("categories", api.ListCategory)  // 商品分类
+		//商品操作
+		v1.GET("product/products", api.ListProducts)     //商品列表
+		v1.GET("product/:id", api.ShowProduct)           //商品详细信息
+		v1.POST("product/search", api.SearchProducts)    //搜索商品
+		v1.GET("images/:id", api.ListProductImg)         //商品图片
+		v1.GET("product/categories", api.ListCategories) //商品分类
+		v1.GET("carousels", api.ListCarousels)           //轮播图
 
-		// 需要登录保护
-		authed := v1.Group("/")
-		authed.Use(middleware.JWT())
+		auth := v1.Group("/") //需要登陆保护
+		auth.Use(middleware.JWT())
 		{
 			// 用户操作
-			authed.PUT("user/update", api.UserUpdate)
-			authed.POST("user/updateAvatar", api.UpdateAvatar)
-			authed.POST("user/sending-email", api.SendEmail) // 绑定邮箱
-			authed.POST("user/valid-email", api.ValidEmail)  // 验证邮箱
-			authed.GET("money", api.ShowMoney)               // 显示余额
+			auth.PUT("user/update", api.UserUpdate)           //用户信息修改
+			auth.POST("user/sending-email", api.SendEmail)    //绑定邮箱
+			auth.POST("user/valid-email", api.ValidEmail)     //验证邮箱
+			auth.POST("user/upload-avatar", api.UploadAvatar) //上传头像
 
 			// 商品操作
-			authed.POST("product", api.CreateProduct)        // 创建商品
-			authed.POST("search_product", api.SearchProduct) // 搜索商品
+			auth.POST("product/add", api.CreateProduct)          //创建商品
+			auth.PUT("product/update/:id", api.UpdateProduct)    //更新商品
+			auth.DELETE("product/delete/:id", api.DeleteProduct) //删除商品
 
-			// 收藏夹操作
-			authed.GET("favorites", api.ListFavorite)          // 展示收藏夹
-			authed.POST("favorites", api.CreateFavorite)       // 创建收藏夹
-			authed.DELETE("favorites/:id", api.DeleteFavorite) // 删除收藏夹
-
-			// 地址操作
-			authed.POST("addresses", api.CreateAddress)       // 创建地址
-			authed.GET("addresses/:id", api.GetAddress)       // 获取详细地址
-			authed.GET("addresses", api.ListAddress)          // 查看所有地址
-			authed.PUT("addresses/:id", api.UpdateAddress)    // 更新地址
-			authed.DELETE("addresses/:id", api.DeleteAddress) // 删除地址
-
-			// 购物车操作
-			authed.POST("carts", api.CreateCart)       // 创建购物车
-			authed.GET("carts", api.ListCart)          // 获取购物车
-			authed.PUT("carts/:id", api.UpdateCart)    // 修改购物车
-			authed.DELETE("carts/:id", api.DeleteCart) // 删除购物车
+			// 收藏夹
+			auth.GET("favorite/favorites", api.ShowFavorites)      //展示收藏夹
+			auth.POST("favorite/add", api.CreateFavorite)          //创建收藏夹
+			auth.DELETE("favorite/delete/:id", api.DeleteFavorite) //删除收藏夹
 
 			// 订单操作
-			authed.POST("orders", api.CreateOrder)       // 创建订单
-			authed.GET("orders", api.ListOrder)          // 获取订单
-			authed.GET("orders/:id", api.ShowOrder)      // 修改订单
-			authed.DELETE("orders/:id", api.DeleteOrder) // 删除订单
+			auth.POST("order/add", api.CreateOrder)
+			auth.GET("order/orders", api.ListOrders)         //获取订单
+			auth.GET("order/:id", api.ShowOrder)             //获取订单详细信息
+			auth.DELETE("order/delete/:id", api.DeleteOrder) //删除订单
 
-			// 支付操作
-			authed.POST("paydown", api.OrderPay)
+			//购物车
+			auth.POST("cart/add", api.CreateCart)          //创建购物车
+			auth.GET("cart/:id", api.ShowCarts)            // 购物车id
+			auth.PUT("cart/update/:id", api.UpdateCart)    // 购物车id
+			auth.DELETE("cart/delete/:id", api.DeleteCart) //删除购物车
+
+			//收获地址操作
+			auth.POST("address/add", api.CreateAddress)          //创建收获地址
+			auth.GET("address/:id", api.GetAddress)              //获取收获地址详情
+			auth.GET("address/addresses", api.ListAddress)       //获取收获地址列表
+			auth.PUT("address/update/:id", api.UpdateAddress)    //修改收获地址
+			auth.DELETE("address/delete/:id", api.DeleteAddress) //删除收获地址
+
+			// 支付功能
+			auth.POST("paydown", api.OrderPay)
+
+			// 显示金额
+			auth.POST("money", api.ShowMoney)
 		}
 	}
+	r.Run(conf.HttpPort)
 	return r
 }

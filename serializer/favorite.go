@@ -2,61 +2,61 @@ package serializer
 
 import (
 	"context"
-
-	"github.com/xilepeng/gin-mall/conf"
-	"github.com/xilepeng/gin-mall/dao"
-	"github.com/xilepeng/gin-mall/model"
+	"mall/dao"
+	"mall/model"
 )
 
 type Favorite struct {
-	UserId        uint   `json:"user_id"`
-	ProductId     uint   `json:"product_id"`
-	CreateAt      int64  `json:"create_at"`
+	UserID        uint   `json:"user_id"`
+	ProductID     uint   `json:"product_id"`
+	CreatedAt     int64  `json:"create_at"`
 	Name          string `json:"name"`
-	CategoryId    uint   `json:"category_id"`
+	CategoryID    uint   `json:"category_id"`
 	Title         string `json:"title"`
 	Info          string `json:"info"`
 	ImgPath       string `json:"img_path"`
 	Price         string `json:"price"`
 	DiscountPrice string `json:"discount_price"`
-	BossId        uint   `json:"boss_id"`
+	BossID        uint   `json:"boss_id"`
 	Num           int    `json:"num"`
 	OnSale        bool   `json:"on_sale"`
 }
 
-func BuildFavorite(favorite *model.Favorite, product *model.Product, boss *model.User) Favorite {
+// 序列化收藏夹
+func BuildFavorite(item1 *model.Favorite, item2 *model.Product, item3 *model.User) Favorite {
 	return Favorite{
-		UserId:        favorite.ID,
-		ProductId:     favorite.ProductId,
-		CreateAt:      favorite.CreatedAt.Unix(),
-		Name:          product.Name,
-		CategoryId:    product.CategoryId,
-		Title:         product.Title,
-		Info:          product.Info,
-		ImgPath:       conf.Host + conf.HttpPort + conf.ProductPath + product.ImgPath,
-		Price:         product.Price,
-		DiscountPrice: product.DiscountPrice,
-		BossId:        boss.ID,
-		Num:           product.Num,
-		OnSale:        product.OnSale,
+		UserID:        item1.UserID,
+		ProductID:     item1.ProductID,
+		CreatedAt:     item1.CreatedAt.Unix(),
+		Name:          item2.Name,
+		CategoryID:    item2.CategoryID,
+		Title:         item2.Title,
+		Info:          item2.Info,
+		ImgPath:       item2.ImgPath,
+		Price:         item2.Price,
+		DiscountPrice: item2.DiscountPrice,
+		BossID:        item3.ID,
+		Num:           item2.Num,
+		OnSale:        item2.OnSale,
 	}
 }
 
+// 收藏夹列表
 func BuildFavorites(ctx context.Context, items []*model.Favorite) (favorites []Favorite) {
 	productDao := dao.NewProductDao(ctx)
 	bossDao := dao.NewUserDao(ctx)
-	for _, item := range items {
-		product, err := productDao.GetProductById(item.ProductId)
-		if err != nil {
-			continue
-		}
-		boss, err := bossDao.GetUserById(item.UserId)
-		if err != nil {
-			continue
-		}
-		favorite := BuildFavorite(item, product, boss)
-		favorites = append(favorites, favorite)
 
+	for _, fav := range items {
+		product, err := productDao.GetProductById(fav.ProductID)
+		if err != nil {
+			continue
+		}
+		boss, err := bossDao.GetUserById(fav.UserID)
+		if err != nil {
+			continue
+		}
+		favorite := BuildFavorite(fav, product, boss)
+		favorites = append(favorites, favorite)
 	}
-	return
+	return favorites
 }

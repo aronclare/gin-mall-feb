@@ -1,6 +1,6 @@
 package model
 
-import "gorm.io/gorm"
+import "github.com/jinzhu/gorm"
 
 type Address struct {
 	gorm.Model
@@ -9,5 +9,3 @@ type Address struct {
 	Phone   string `gorm:"type:varchar(11) not null"`
 	Address string `gorm:"type:varchar(50) not null"`
 }
-
-// 错误细节：少写结束的分号

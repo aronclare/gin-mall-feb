@@ -1,11 +1,10 @@
 package middleware
 
 import (
-	"time"
-
 	"github.com/gin-gonic/gin"
-	"github.com/xilepeng/gin-mall/pkg/e"
-	util "github.com/xilepeng/gin-mall/pkg/utils"
+	"mall/utils"
+	"mall/utils/e"
+	"time"
 )
 
 // JWT token验证中间件
